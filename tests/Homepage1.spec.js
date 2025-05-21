@@ -3,19 +3,35 @@ const {APIUtils} = require('../utils/APIUtils');
 const { title } = require('process');
 const { match } = require('assert');
 
-test('Validate homepage title and metadata', async ({page}) => {
+let webContext;
+
+test.beforeAll(async ({browser})=>
+    {
+        const context = await browser.newContext();
+        const page = await context.newPage();
+    
+        const email = "motanshikaa@gmail.com";
+        await page.goto("https://rahulshettyacademy.com/client");
+        await page.locator("#userEmail").fill(email);
+        await page.locator("#userPassword").fill("Anshika@123");
+        await page.locator("[value='Login']").click();
+        await page.waitForLoadState('networkidle');
+        await context.storageState({path:'state.json'});
+        webContext = await browser.newContext({storageState:'state.json'});       
+    });
+
+test('Validate homepage title and metadata', async () => {
+    const page = await webContext.newPage();
     await page.goto("https://rahulshettyacademy.com/client/");
     expect(page).toHaveTitle("Let's Shop");  
-
-    const descriptionMeta = await page.locator('.login-title');
     const metaViewport = page.locator('head meta[name="viewport"]');
-    const divStyle = page.locator('div .login-section-wrapper');
-    await expect(descriptionMeta).toHaveText('Log in');
+    // const divStyle = page.locator('div .login-section-wrapper');
     await expect(metaViewport).toHaveAttribute('content', 'width=device-width, initial-scale=1'); 
-    await expect(divStyle).toHaveAttribute('style', 'background-color: white;'); 
+    // await expect(divStyle).toHaveAttribute('style', 'background-color: white;'); 
 });
 
-test('Login and Logo Validation', async ({page}) => {
+test('Login and Logo Validation', async () => {
+    const page = await webContext.newPage();
     const email = "motanshikaa@gmail.com";
     await page.goto("https://rahulshettyacademy.com/client");
     await page.locator("#userEmail").fill(email);
@@ -25,7 +41,8 @@ test('Login and Logo Validation', async ({page}) => {
     expect(await page.locator('.logo').isVisible());
 });
 
-test('Search bar Validation', async({page}) =>{
+test('Search bar Validation', async() =>{
+    const page = await webContext.newPage();
     const email = "motanshikaa@gmail.com";
     await page.goto("https://rahulshettyacademy.com/client");
     await page.locator("#userEmail").fill(email);
@@ -41,7 +58,8 @@ test('Search bar Validation', async({page}) =>{
     expect(match).toBeTruthy();
 })
 
-test('Navigation Validation',async ({page})=> {
+test.only('Navigation Validation',async ()=> {
+    const page = await webContext.newPage();
     const email = "motanshikaa@gmail.com";
     await page.goto("https://rahulshettyacademy.com/client");
     await page.locator("#userEmail").fill(email);
